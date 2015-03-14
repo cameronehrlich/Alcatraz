@@ -83,16 +83,16 @@
     @throw [NSException exceptionWithName:@"Not Implemented" reason:@"Some packages don't require restarting!" userInfo:nil];
 }
 
-- (void)installWithProgress:(ATZProgressWithString)progress completion:(ATZSuccessWithError)completion {
-    [[self installer] installPackage:self progress:progress completion:completion];
+- (void)installWithProgress:(ATZProgressWithString)progress completion:(ATZError)completionBlock {
+    [[self installer] installPackage:self progress:progress completion:completionBlock];
 }
 
-- (void)updateWithProgress:(ATZProgressWithString)progress completion:(ATZSuccessWithError)completion {
-    [[self installer] updatePackage:self progress:progress completion:completion];
+- (void)updateWithProgress:(ATZProgressWithString)progress completion:(ATZError)completionBlock {
+    [[self installer] updatePackage:self progress:progress completion:completionBlock];
 }
 
-- (void)removeWithCompletion:(ATZSuccessWithError)completion {
-    [[self installer] removePackage:self completion:completion];
+- (void)removeWithCompletion:(ATZError)completionBlock {
+    [[self installer] removePackage:self completion:completionBlock];
 }
 
 - (ATZInstaller *)installer {

@@ -50,12 +50,12 @@ typedef NS_ENUM(NSUInteger, ATZPackageWebsiteType) {
 - (instancetype)initWithDictionary:(NSDictionary *)dict;
 
 - (void)installWithProgress:(ATZProgressWithString)progressBlock
-                 completion:(ATZSuccessWithError)completionBlock;
+                 completion:(ATZError)completionBlock;
 
 - (void)updateWithProgress:(ATZProgressWithString)progressBlock
-                completion:(ATZSuccessWithError)completionBlock;
+                completion:(ATZError)completionBlock;
 
-- (void)removeWithCompletion:(ATZSuccessWithError)completionBlock;
+- (void)removeWithCompletion:(ATZError)completionBlock;
 
 
 #pragma mark - Abstract

@@ -21,11 +21,12 @@
 // THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
+#import "ATZCallbacks.h"
 
 @interface NSFileManager(Alcatraz)
 
 + (instancetype)sharedManager;
 
-- (void)removeItemAtPath:(NSString *)path completion:(ATZSuccessWithError)completionBlock;
+- (void)removeItemAtPath:(NSString *)path completion:(ATZError)completionBlock;
 
 @end

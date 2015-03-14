@@ -37,13 +37,13 @@ static NSString *const UPDATING_FORMAT = @"Updating %@...";
 + (instancetype)sharedInstaller;
 
 - (void)installPackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock
-                                           completion:(ATZSuccessWithError)completionBlock;
+                                           completion:(ATZError)completionBlock;
 
 - (void)updatePackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock
-                                          completion:(ATZSuccessWithError)completionBlock;
+                                          completion:(ATZError)completionBlock;
 
 - (void)removePackage:(ATZPackage *)package
-           completion:(ATZSuccessWithError)completion;
+           completion:(ATZError)completion;
 
 
 - (BOOL)isPackageInstalled:(ATZPackage *)package;
@@ -58,6 +58,6 @@ static NSString *const UPDATING_FORMAT = @"Updating %@...";
 
 #pragma mark - Hooks
 
-- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(ATZSuccessWithError)completion;
+- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(ATZError)completion;
 
 @end

@@ -44,7 +44,7 @@ const CGFloat ATZFakeInstallProgress = 0.66;
 
 #pragma mark - Public
 
-- (void)installPackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock completion:(ATZSuccessWithError)completionBlock {
+- (void)installPackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock completion:(ATZError)completionBlock {
     if (progressBlock) {
         progressBlock(ATZFakeDownloadProgress, [NSString stringWithFormat:DOWNLOADING_FORMAT, package.name]);
     }
@@ -52,7 +52,7 @@ const CGFloat ATZFakeInstallProgress = 0.66;
     [self downloadPackage:package completion:^(NSString *output, NSError *error) {
         if (error) {
             if (completionBlock) {
-                completionBlock(NO ,error);
+                completionBlock(error);
             }
             return;
         }
@@ -60,20 +60,19 @@ const CGFloat ATZFakeInstallProgress = 0.66;
             progressBlock(ATZFakeInstallProgress, [NSString stringWithFormat:INSTALLING_FORMAT, package.name]);
         }
         
-        [self installPackage:package completion:^(BOOL success, NSError *error) {
+        [self installPackage:package completion:^(NSError *error) {
             if (error) {
                 if (completionBlock) {
-                    completionBlock(NO, error);
+                    completionBlock(error);
                 }
-                else {
-                    [self reloadXcodeForPackage:package completion:completionBlock];
-                }
+            }else {
+                [self reloadXcodeForPackage:package completion:completionBlock];
             }
         }];
     }];
 }
 
-- (void)updatePackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock completion:(ATZSuccessWithError)completionBlock {
+- (void)updatePackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock completion:(ATZError)completionBlock {
     
     if (progressBlock) {
         progressBlock(ATZFakeDownloadProgress, [NSString stringWithFormat:UPDATING_FORMAT, package.name]);
@@ -84,7 +83,7 @@ const CGFloat ATZFakeInstallProgress = 0.66;
         BOOL needsUpdate = output.length > 0;
         if (error || !needsUpdate) {
             if (completionBlock) {
-                completionBlock(NO, error);
+                completionBlock(error);
             }
             return;
         }
@@ -97,7 +96,7 @@ const CGFloat ATZFakeInstallProgress = 0.66;
     }];
 }
 
-- (void)removePackage:(ATZPackage *)package completion:(ATZSuccessWithError)completionBlock {
+- (void)removePackage:(ATZPackage *)package completion:(ATZError)completionBlock {
     [[NSFileManager sharedManager] removeItemAtPath:[self pathForInstalledPackage:package] completion:completionBlock];
 }
 
@@ -128,7 +127,7 @@ const CGFloat ATZFakeInstallProgress = 0.66;
                                    reason:@"Abstract Installer doesn't know how to update" userInfo:nil];
 }
 
-- (void)installPackage:(ATZPackage *)package completion:(ATZSuccessWithError)completionBlock {
+- (void)installPackage:(ATZPackage *)package completion:(ATZError)completionBlock {
     @throw [NSException exceptionWithName:@"Abstract Installer"
                                    reason:@"Abstract Installer doesn't know how to install" userInfo:nil];
 }
@@ -147,9 +146,9 @@ const CGFloat ATZFakeInstallProgress = 0.66;
 
 #pragma mark - Hooks
 
-- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(ATZSuccessWithError)completionBlock {
+- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(ATZError)completionBlock {
     if (completionBlock) {
-        completionBlock(YES, nil);
+        completionBlock(nil);
     }
 }
 

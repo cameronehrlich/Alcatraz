@@ -51,6 +51,7 @@ static Alcatraz *sharedPlugin;
 - (instancetype)initWithBundle:(NSBundle *)plugin {
     if (self = [super init]) {
         self.bundle = plugin;
+        self.operationQueue = [[NSOperationQueue alloc] init];
         [self createMenuItem];
         [self updateAlcatraz];
     }
@@ -101,8 +102,7 @@ static Alcatraz *sharedPlugin;
 }
 
 - (void)updateAlcatraz {
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-    [queue addOperationWithBlock:^{
+    [self.operationQueue addOperationWithBlock:^{
         [ATZAlcatrazPackage update];
     }];
 }

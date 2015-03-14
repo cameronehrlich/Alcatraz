@@ -83,7 +83,7 @@
         }
         else {
             [self resetHard:localPath revision:revision completion:^(NSString *resetOutput, NSError *error) {
-                if(completionBlock) {
+                if (completionBlock) {
                     completionBlock(fetchOutput, error);
                 }
             }];

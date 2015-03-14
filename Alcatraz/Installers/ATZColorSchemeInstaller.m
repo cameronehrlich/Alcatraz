@@ -61,7 +61,7 @@ static NSString *const DOWNLOADED_COLOR_SCHEMES_RELATIVE_PATH = @"FontAndColorTh
     }
 }
 
-- (void)installPackage:(ATZColorScheme *)package completion:(ATZSuccessWithError)completionBlock {
+- (void)installPackage:(ATZColorScheme *)package completion:(ATZError)completionBlock {
     [self createInstalledColorsDirectoryIfNeeded];
     [self copyColorSchemeToXcode:package completion:completionBlock];
 }
@@ -87,12 +87,12 @@ static NSString *const DOWNLOADED_COLOR_SCHEMES_RELATIVE_PATH = @"FontAndColorTh
                     completion([NSError errorWithDomain:@"Color Scheme Installation fail" code:666 userInfo:nil]);
 }
 
-- (void)copyColorSchemeToXcode:(ATZPackage *)colorScheme completion:(ATZSuccessWithError)completionBlock {
+- (void)copyColorSchemeToXcode:(ATZPackage *)colorScheme completion:(ATZError)completionBlock {
     NSError *error = nil;
     [[NSFileManager sharedManager] linkItemAtPath:[self pathForDownloadedPackage:colorScheme]
                                            toPath:[self pathForInstalledPackage:colorScheme] error:&error];
     if (completionBlock) {
-        completionBlock(error != nil ,error);
+        completionBlock(error);
     }
 
 }

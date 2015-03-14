@@ -40,21 +40,21 @@
                   completion:completionBlock];
 }
 
-- (void)installPackage:(ATZTemplate *)package completion:(ATZSuccessWithError)completionBlock {
+- (void)installPackage:(ATZTemplate *)package completion:(ATZError)completionBlock {
     [self copyTemplatesToXcode:package completion:completionBlock];
 }
 
 
 #pragma mark - Private
 
-- (void)copyTemplatesToXcode:(ATZTemplate *)template completion:(ATZSuccessWithError)completionBlock {
+- (void)copyTemplatesToXcode:(ATZTemplate *)template completion:(ATZError)completionBlock {
 
     NSError *error = nil;
     [self createTemplateInstallDirectory:template error:&error];
     
     if (error){
         if (completionBlock) {
-            completionBlock(error == nil ,error);
+            completionBlock(error);
         }
     }
     
@@ -67,7 +67,7 @@
     }
     
     if (completionBlock) {
-        completionBlock(error == nil ,error);
+        completionBlock(error);
     }
 
 }

@@ -26,13 +26,13 @@
 
 @property (nonatomic, retain) NSArray *packages;
 
-@property (assign) IBOutlet NSPanel *previewPanel;
-@property (assign) IBOutlet NSImageView *previewImageView;
-@property (assign) IBOutlet NSSearchField *searchField;
-@property (assign) IBOutlet NSTableView *tableView;
-@property (weak) IBOutlet NSSegmentedControl *packageTypeSegmentedControl;
-@property (weak) IBOutlet NSSegmentedControl *installationStateSegmentedControl;
-@property (weak) IBOutlet NSTextField *versionTextField;
+@property (nonatomic, weak) IBOutlet NSPanel *previewPanel;
+@property (nonatomic, weak) IBOutlet NSImageView *previewImageView;
+@property (nonatomic, weak) IBOutlet NSSearchField *searchField;
+@property (nonatomic, weak) IBOutlet NSTableView *tableView;
+@property (nonatomic, weak) IBOutlet NSSegmentedControl *packageTypeSegmentedControl;
+@property (nonatomic, weak) IBOutlet NSSegmentedControl *installationStateSegmentedControl;
+@property (nonatomic, weak) IBOutlet NSTextField *versionTextField;
 
 - (instancetype)initWithBundle:(NSBundle *)bundle;
 

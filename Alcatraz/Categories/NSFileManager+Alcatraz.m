@@ -22,9 +22,7 @@
 
 #import "NSFileManager+Alcatraz.h"
 
-
 static NSFileManager *singleton;
-
 
 @implementation NSFileManager(Alcatraz)
 
@@ -38,13 +36,13 @@ static NSFileManager *singleton;
     return singleton;
 }
 
-- (void)removeItemAtPath:(NSString *)path completion:(ATZSuccessWithError)completionBlock {
-    NSError *error = nil;
+- (void)removeItemAtPath:(NSString *)path completion:(ATZError)completionBlock {
     
-    [self removeItemAtPath:path error:&error];
+    NSError *error = nil;
+   [self removeItemAtPath:path error:&error];
     
     if (completionBlock) {
-        completionBlock( error != nil ,error);
+        completionBlock(error);
     }
 }
 

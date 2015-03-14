@@ -26,11 +26,11 @@
 
 @interface Alcatraz : NSObject
 
-@property (nonatomic, retain) ATZPluginWindowController *windowController;
+@property (nonatomic, strong) ATZPluginWindowController *windowController;
 @property (nonatomic, strong) NSBundle *bundle;
+@property (nonatomic, strong) NSOperationQueue *operationQueue;
 
 + (Alcatraz *)sharedPlugin;
-
 + (NSString *)localizedStringForKey:(NSString *)key;
 
 @end

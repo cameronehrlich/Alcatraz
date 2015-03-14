@@ -39,21 +39,20 @@ static NSString *const PROJECT_PBXPROJ = @"project.pbxproj";
 
 #pragma mark - Abstract
 
-- (void)downloadPackage:(ATZPackage *)package completion:(void(^)(NSString *, NSError *))completion {
+- (void)downloadPackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
 
     [ATZGit cloneRepository:package.remotePath toLocalPath:[self pathForDownloadedPackage:package]
-                 completion:completion];
+                 completion:completionBlock];
 }
 
-- (void)updatePackage:(ATZPackage *)package completion:(void(^)(NSString *, NSError *))completion {
+- (void)updatePackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
 
     [ATZGit updateRepository:[self pathForDownloadedPackage:package] revision:package.revision
-                  completion:completion];
+                  completion:completionBlock];
 }
 
-
-- (void)installPackage:(ATZPlugin *)package completion:(void(^)(NSError *))completion {
-    [self buildPlugin:package completion:completion];
+- (void)installPackage:(ATZPlugin *)package completion:(ATZError)completionBlock {
+    [self buildPlugin:package completion:completionBlock];
 }
 
 - (NSString *)downloadRelativePath {
@@ -72,20 +71,20 @@ static NSString *const PROJECT_PBXPROJ = @"project.pbxproj";
 
 #pragma mark - Hooks
 // Note: this is an early alpha implementation. It needs some love
-- (void)reloadXcodeForPackage:(ATZPackage *)plugin completion:(ATZSuccessWithError)completionBlock {
+- (void)reloadXcodeForPackage:(ATZPackage *)plugin completion:(ATZError)completionBlock {
 
     NSBundle *pluginBundle = [NSBundle bundleWithPath:[self pathForInstalledPackage:plugin]];
     NSLog(@"Trying to reload plugin: %@ with bundle: %@", plugin.name, pluginBundle);
 
     if (!pluginBundle) {
         if (completionBlock) {
-            completionBlock(NO ,[NSError errorWithDomain:@"Bundle was not found" code:669 userInfo:nil]);
+            completionBlock([NSError errorWithDomain:@"Bundle was not found" code:669 userInfo:nil]);
         }
         return;
     }
     else if ([pluginBundle isLoaded]) {
         if (completionBlock) {
-            completionBlock(YES, nil);
+            completionBlock(nil);
         }
         return;
     }
@@ -99,26 +98,32 @@ static NSString *const PROJECT_PBXPROJ = @"project.pbxproj";
     [self reloadPluginBundleWithoutWarnings:pluginBundle forPlugin:plugin];
 
     if (completionBlock) {
-        completionBlock(YES, nil);
+        completionBlock(nil);
     }
 }
 
 #pragma mark - Private
 
-- (void)buildPlugin:(ATZPlugin *)plugin completion:(void (^)(NSError *))completion {
+- (void)buildPlugin:(ATZPlugin *)plugin completion:(ATZError)completionBlock {
 
     NSString *xcodeProjPath;
 
-    @try { xcodeProjPath = [self findXcodeprojPathForPlugin:plugin]; }
+    @try {
+        xcodeProjPath = [self findXcodeprojPathForPlugin:plugin];
+    }
     @catch (NSException *exception) {
-        completion([NSError errorWithDomain:exception.reason code:666 userInfo:nil]);
+        if (completionBlock) {
+            completionBlock([NSError errorWithDomain:exception.reason code:666 userInfo:nil]);
+        }
         return;
     }
 
     ATZShell *shell = [ATZShell new];
     [shell executeCommand:XCODE_BUILD withArguments:@[PROJECT, xcodeProjPath] completion:^(NSString *output, NSError *error) {
         NSLog(@"Xcodebuild output: %@", output);
-        completion(error);
+        if (completionBlock) {
+            completionBlock(error);
+        }
     }];
 }
 
@@ -129,9 +134,11 @@ static NSString *const PROJECT_PBXPROJ = @"project.pbxproj";
     NSDirectoryEnumerator *enumerator = [[NSFileManager sharedManager] enumeratorAtPath:clonedDirectory];
     NSString *directoryEntry;
 
-    while (directoryEntry = [enumerator nextObject])
-        if ([directoryEntry.pathComponents.lastObject isEqualToString:xcodeProjFilename])
+    while (directoryEntry = [enumerator nextObject]) {
+        if ([directoryEntry.pathComponents.lastObject isEqualToString:xcodeProjFilename]) {
             return [clonedDirectory stringByAppendingPathComponent:directoryEntry];
+        }
+    }
 
     NSLog(@"Wasn't able to find: %@ in %@", xcodeProjFilename, clonedDirectory);
     @throw [NSException exceptionWithName:@"Not found" reason:@".xcodeproj was not found" userInfo:nil];

@@ -191,6 +191,7 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 #pragma mark - Private
 
 - (void)enqueuePackageUpdate:(ATZPackage *)package {
+    
     if (!package.isInstalled) {
         return;
     }
@@ -199,16 +200,18 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
         
         [package updateWithProgress:^(CGFloat progress, NSString *message) {
             // do something with the progress...
-        } completion:^(BOOL success, NSError *error) {
-            if (!success) {
+        } completion:^(NSError *error) {
+            if (error) {
                 NSLog(@"Failed in %s with error: %@", __FUNCTION__, error.debugDescription);
             }
+            else {
+                NSLog(@"Package %@ updated.", package.name);
+            }
         }];
-        
     }];
     
-    [updateOperation addDependency:[[NSOperationQueue mainQueue] operations].lastObject];
-    [[NSOperationQueue mainQueue] addOperation:updateOperation];
+    NSOperationQueue *operationQueue = [[Alcatraz sharedPlugin] operationQueue];
+    [operationQueue addOperation:updateOperation];
 }
 
 - (void)removePackage:(ATZPackage *)package andUpdateControl:(ATZFillableButton *)button {
@@ -224,9 +227,9 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
         control.title = @"INSTALLING";
         [control setFillRatio:progress * 100 animated:YES];
         
-    } completion:^(BOOL success, NSError *error) {
+    } completion:^(NSError *error) {
         
-        if (!success || error) {
+        if (error) {
             NSLog(@"Failed in %s with error: %@", __FUNCTION__, error.debugDescription);
         }
         
@@ -236,20 +239,23 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
         if (package.requiresRestart) {
             [self postNotificationForInstalledPackage:package];
         }
+        
     }];
 }
 
 - (void)postNotificationForInstalledPackage:(ATZPackage *)package {
-    if (![NSUserNotificationCenter class] || !package.isInstalled) {
+    if (!package.isInstalled) {
         return;
     }
     
-    NSUserNotification *notification = [NSUserNotification new];
-    notification.title = [NSString stringWithFormat:@"%@ installed", package.type];
-    NSString *restartText = package.requiresRestart ? @" Please restart Xcode to use it." : @"";
-    notification.informativeText = [NSString stringWithFormat:@"%@ was installed successfully! %@", package.name, restartText];
-
-    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        NSUserNotification *notification = [NSUserNotification new];
+        notification.title = [NSString stringWithFormat:@"%@ installed", package.type];
+        NSString *restartText = package.requiresRestart ? @" Please restart Xcode to use it." : @"";
+        notification.informativeText = [NSString stringWithFormat:@"%@ was installed successfully! %@", package.name, restartText];
+        
+        [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+    }];
 }
 
 BOOL hasPressedCommandF(NSEvent *event) {
