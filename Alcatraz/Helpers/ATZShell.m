@@ -75,10 +75,15 @@
             NSString* output = [[NSString alloc] initWithData:self.taskOutput encoding:NSUTF8StringEncoding];
             
             if (task.terminationStatus == 0) {
-                completion(output, nil);
+                if (completion) {
+                    completion(output, nil);
+                }
             } else {
-                NSString* reason = [NSString stringWithFormat:@"Task exited with status %d", task.terminationStatus];
-                completion(output, [NSError errorWithDomain:reason code:666 userInfo:@{ NSLocalizedDescriptionKey: reason }]);
+                NSString *reason = [NSString stringWithFormat:@"Task exited with status %d", task.terminationStatus];
+                if (completion) {
+                    completion(output, [NSError errorWithDomain:reason code:666 userInfo:@{ NSLocalizedDescriptionKey: reason }]);
+                }
+
             }
         }];
         
@@ -93,7 +98,9 @@
     }
     @catch (NSException *exception) {
         NSLog(@"Shell command execution failed! %@", exception);
-        completion(nil, [NSError errorWithDomain:exception.reason code:667 userInfo:nil]);
+        if (completion) {
+            completion(nil, [NSError errorWithDomain:exception.reason code:667 userInfo:nil]);
+        }
     }
 }
 

@@ -33,7 +33,6 @@ static Alcatraz *sharedPlugin;
 + (void)pluginDidLoad:(NSBundle *)plugin {
     static dispatch_once_t onceToken;
     NSString *currentApplicationName = [[NSBundle mainBundle] infoDictionary][@"CFBundleName"];
-
     if ([currentApplicationName isEqual:@"Xcode"]) {
         dispatch_once(&onceToken, ^{
             sharedPlugin = [[self alloc] initWithBundle:plugin];
@@ -49,7 +48,7 @@ static Alcatraz *sharedPlugin;
     return [[self sharedPlugin].bundle localizedStringForKey:key value:nil table:nil];
 }
 
-- (id)initWithBundle:(NSBundle *)plugin {
+- (instancetype)initWithBundle:(NSBundle *)plugin {
     if (self = [super init]) {
         self.bundle = plugin;
         [self createMenuItem];
@@ -62,7 +61,7 @@ static Alcatraz *sharedPlugin;
 
 - (void)createMenuItem {
     NSMenuItem *windowMenuItem = [[NSApp mainMenu] itemWithTitle:@"Window"];
-    NSMenuItem *pluginManagerItem = [[NSMenuItem alloc] initWithTitle:@"Package Manager"
+    NSMenuItem *pluginManagerItem = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"Package Manager - %@", [NSDate date]]
                                                                action:@selector(checkForCMDLineToolsAndOpenWindow)
                                                         keyEquivalent:@"9"];
     pluginManagerItem.keyEquivalentModifierMask = NSCommandKeyMask | NSShiftKeyMask;
@@ -104,7 +103,6 @@ static Alcatraz *sharedPlugin;
 - (void)updateAlcatraz {
     NSOperationQueue *queue = [[NSOperationQueue alloc] init];
     [queue addOperationWithBlock:^{
-    
         [ATZAlcatrazPackage update];
     }];
 }

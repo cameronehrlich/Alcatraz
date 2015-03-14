@@ -27,17 +27,15 @@
 @implementation ATZGit
 
 + (void)updateRepository:(NSString *)localPath revision:(NSString *)revision
-                                             completion:(void(^)(NSString *output, NSError *error))completion {
-
+                                             completion:(ATZStringWithError)completionBlock {
     NSLog(@"Updating Repo: %@", localPath);
-    [self updateLocalProject:localPath revision:revision completion:completion];
+    [self updateLocalProject:localPath revision:revision completion:completionBlock];
 }
 
 + (void)cloneRepository:(NSString *)remotePath toLocalPath:(NSString *)localPath
-                                                completion:(void (^)(NSString *output, NSError *))completion {
-
+                                                completion:(ATZStringWithError)completionBlock {
     NSLog(@"Cloning Repo: %@", localPath);
-    [self clone:remotePath to:localPath completion:completion];
+    [self clone:remotePath to:localPath completion:completionBlock];
 }
 
 + (NSString *)parseRevisionFromDictionary:(NSDictionary *)dict {
@@ -60,45 +58,54 @@
 
 #pragma mark - Private
 
-+ (void)clone:(NSString *)remotePath to:(NSString *)localPath completion:(void (^)(NSString *, NSError *))completion {
++ (void)clone:(NSString *)remotePath to:(NSString *)localPath completion:(ATZStringWithError)completionBlock {
     ATZShell *shell = [ATZShell new];
     
     [shell executeCommand:GIT withArguments:@[CLONE, remotePath, localPath, IGNORE_PUSH_CONFIG]
                completion:^(NSString *output, NSError *error) {
                    
-        NSLog(@"Git Clone output: %@", output);
-        completion(output, error);
-    }];
+                   NSLog(@"Git Clone output: %@", output);
+                   
+                   if (completionBlock) {
+                       completionBlock(output, error);
+                   }
+               }];
 }
 
 // TODO: refactor, make less shell instances (maybe?)
-+ (void)updateLocalProject:(NSString *)localPath revision:(NSString *)revision
-                completion:(void (^)(NSString *, NSError *))completion {
++ (void)updateLocalProject:(NSString *)localPath revision:(NSString *)revision completion:(ATZStringWithError)completionBlock {
     
     [self fetch:localPath completion:^(NSString *fetchOutput, NSError *error) {
-        
-        if (error)
-            completion(fetchOutput, error);
-        else
+        if (error) {
+            if (completionBlock) {
+                completionBlock(fetchOutput, error);
+            }
+        }
+        else {
             [self resetHard:localPath revision:revision completion:^(NSString *resetOutput, NSError *error) {
-                completion(fetchOutput, error);
+                if(completionBlock) {
+                    completionBlock(fetchOutput, error);
+                }
             }];
+        }
     }];
 }
 
-+ (void)fetch:(NSString *)localPath completion:(void (^)(NSString *, NSError *))completion {
++ (void)fetch:(NSString *)localPath completion:(ATZStringWithError)completionBlock {
     
     ATZShell *shell = [ATZShell new];
     [shell executeCommand:GIT withArguments:@[FETCH, ORIGIN] inWorkingDirectory:localPath
                completion:^(NSString *output, NSError *error) {
                    
-        NSLog(@"Git fetch output: %@", output);
-        completion(output, error);
-    }];
+                   NSLog(@"Git fetch output: %@", output);
+
+                   if (completionBlock) {
+                       completionBlock(output, error);
+                   }
+               }];
 }
 
-+ (void)resetHard:(NSString *)localPath revision:(NSString *)revision
-       completion:(void (^)(NSString *, NSError *))completion {
++ (void)resetHard:(NSString *)localPath revision:(NSString *)revision completion:(ATZStringWithError)completionBlock {
     
     ATZShell *shell = [ATZShell new];
     NSArray *resetArguments = @[RESET, HARD, revision ?: ORIGIN_MASTER];
@@ -106,11 +113,11 @@
     [shell executeCommand:GIT withArguments:resetArguments inWorkingDirectory:localPath
                completion:^(NSString *output, NSError *error) {
                    
-        NSLog(@"Git reset output: %@", output);
-        completion(output, error);
-    }];
+                   NSLog(@"Git reset output: %@", output);
+                   if (completionBlock) {
+                       completionBlock(output, error);
+                   }
+               }];
 }
-
-
 
 @end

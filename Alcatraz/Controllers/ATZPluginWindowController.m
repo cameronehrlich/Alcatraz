@@ -55,17 +55,19 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 
 @implementation ATZPluginWindowController
 
-- (id)init {
+- (instancetype)init {
     @throw [NSException exceptionWithName:@"There's a better initializer" reason:@"Use -initWithNibName:inBundle:" userInfo:nil];
 }
 
-- (id)initWithBundle:(NSBundle *)bundle {
+- (instancetype)initWithBundle:(NSBundle *)bundle {
     if (self = [super initWithWindowNibName:NSStringFromClass([ATZPluginWindowController class])]) {
         @try {
             if ([NSUserNotificationCenter class])
                 [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
         }
-        @catch(NSException *exception) { NSLog(@"I've heard you like exceptions... %@", exception); }
+        @catch(NSException *exception) {
+            NSLog(@"I've heard you like exceptions... %@", exception);
+        }
     }
     return self;
 }
@@ -73,8 +75,9 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 - (void)windowDidLoad {
     [super windowDidLoad];
     [self addVersionToWindow];
-    if ([self.window respondsToSelector:@selector(setTitleVisibility:)])
+    if ([self.window respondsToSelector:@selector(setTitleVisibility:)]) {
         self.window.titleVisibility = NSWindowTitleHidden;
+    }
 }
 
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
@@ -90,10 +93,12 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 - (IBAction)installPressed:(ATZFillableButton *)button {
     ATZPackage *package = [self.tableViewDelegate tableView:self.tableView objectValueForTableColumn:0 row:[self.tableView rowForView:button]];
     
-    if (package.isInstalled)
+    if (package.isInstalled) {
         [self removePackage:package andUpdateControl:button];
-    else
+    }
+    else {
         [self installPackage:package andUpdateControl:button];
+    }
 }
 
 - (NSDictionary *)segmentClassMapping {
@@ -112,7 +117,9 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 
 - (IBAction)displayScreenshotPressed:(NSButton *)sender {
     ATZPackage *package = [self.tableViewDelegate tableView:self.tableView objectValueForTableColumn:0 row:[self.tableView rowForView:sender]];
-    [self displayScreenshotWithPath:package.screenshotPath withTitle:package.name];
+    [self displayScreenshotWithPath:package.screenshotPath withTitle:package.name andProgress:^(CGFloat progress) {
+        // Do something with progresss...   
+    }];
 }
 
 - (IBAction)openPackageWebsitePressed:(NSButton *)sender {
@@ -126,19 +133,23 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 }
 
 - (void)keyDown:(NSEvent *)event {
-    if (hasPressedCommandF(event))
+    if (hasPressedCommandF(event)) {
         [self.window makeFirstResponder:self.searchField];
-    else
+    }
+    else {
         [super keyDown:event];
+    }
 }
 
 - (IBAction)reloadPackages:(id)sender {
     ATZDownloader *downloader = [ATZDownloader new];
-    [downloader downloadPackageListWithCompletion:^(NSDictionary *packageList, NSError *error) {
-
+    [downloader downloadPackageListWithProgress:^(CGFloat progress) {
+        // do something with progress
+    } andCompletion:^(NSDictionary *packageList, NSError *error) {
         if (error) {
             NSLog(@"Error while downloading packages! %@", error);
-        } else {
+        }
+        else {
             self.packages = [ATZPackageFactory createPackagesFromDicts:packageList];
             [self reloadTableView];
             [self updatePackages];
@@ -180,12 +191,22 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 #pragma mark - Private
 
 - (void)enqueuePackageUpdate:(ATZPackage *)package {
-    if (!package.isInstalled) return;
+    if (!package.isInstalled) {
+        return;
+    }
 
     NSOperation *updateOperation = [NSBlockOperation blockOperationWithBlock:^{
-        [package updateWithProgress:^(NSString *proggressMessage, CGFloat progress){}
-                                completion:^(NSError *failure){}];
+        
+        [package updateWithProgress:^(CGFloat progress, NSString *message) {
+            // do something with the progress...
+        } completion:^(BOOL success, NSError *error) {
+            if (!success) {
+                NSLog(@"Failed in %s with error: %@", __FUNCTION__, error.debugDescription);
+            }
+        }];
+        
     }];
+    
     [updateOperation addDependency:[[NSOperationQueue mainQueue] operations].lastObject];
     [[NSOperationQueue mainQueue] addOperation:updateOperation];
 }
@@ -197,18 +218,31 @@ typedef NS_ENUM(NSInteger, ATZFilterSegment) {
 }
 
 - (void)installPackage:(ATZPackage *)package andUpdateControl:(ATZFillableButton *)control {
-    [package installWithProgress:^(NSString *progressMessage, CGFloat progress) {
+    
+    [package installWithProgress:^(CGFloat progress, NSString *message) {
+        
         control.title = @"INSTALLING";
         [control setFillRatio:progress * 100 animated:YES];
-    } completion:^(NSError *failure) {
+        
+    } completion:^(BOOL success, NSError *error) {
+        
+        if (!success || error) {
+            NSLog(@"Failed in %s with error: %@", __FUNCTION__, error.debugDescription);
+        }
+        
         control.title = package.isInstalled ? @"REMOVE" : @"INSTALL";
         [control setFillRatio:(package.isInstalled ? 100 : 0) animated:YES];
-        if (package.requiresRestart) [self postNotificationForInstalledPackage:package];
+        
+        if (package.requiresRestart) {
+            [self postNotificationForInstalledPackage:package];
+        }
     }];
 }
 
 - (void)postNotificationForInstalledPackage:(ATZPackage *)package {
-    if (![NSUserNotificationCenter class] || !package.isInstalled) return;
+    if (![NSUserNotificationCenter class] || !package.isInstalled) {
+        return;
+    }
     
     NSUserNotification *notification = [NSUserNotification new];
     notification.title = [NSString stringWithFormat:@"%@ installed", package.type];
@@ -229,11 +263,13 @@ BOOL hasPressedCommandF(NSEvent *event) {
     if (selectedPackageClass)
         [predicates addObject:[NSPredicate predicateWithFormat:CLASS_PREDICATE_FORMAT, selectedPackageClass]];
 
-    if (searchText.length > 0)
+    if (searchText.length > 0) {
         [predicates addObject:[NSPredicate predicateWithFormat:SEARCH_PREDICATE_FORMAT, searchText, searchText]];
+    }
 
-    if ([self.installationStateSegmentedControl selectedSegment] != 0)
+    if ([self.installationStateSegmentedControl selectedSegment] != 0) {
         [predicates addObject:[NSPredicate predicateWithFormat:INSTALLED_PREDICATE_FORMAT]];
+    }
 
     [self.tableViewDelegate filterUsingPredicate:[NSCompoundPredicate andPredicateWithSubpredicates:predicates]];
     [self.tableView reloadData];
@@ -249,15 +285,24 @@ BOOL hasPressedCommandF(NSEvent *event) {
     [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:address]];
 }
 
-- (void)displayScreenshotWithPath:(NSString *)screenshotPath withTitle:(NSString *)title {
+- (void)displayScreenshotWithPath:(NSString *)screenshotPath
+                        withTitle:(NSString *)title
+                      andProgress:(ATZProgress)progressBlock {
     
     [self.previewPanel.animator setAlphaValue:0.f];
     self.previewPanel.title = title;
     [self retrieveImageViewForScreenshot:screenshotPath
-                                progress:^(CGFloat progress) {}
-                              completion:^(NSImage *image) {
-        [self displayImage:image withTitle:title];
-    }];
+                                progress:^(CGFloat progress) {
+                                    if (progressBlock) {
+                                        progressBlock(progress);
+                                    }
+                                }
+                              completion:^(NSImage *image, NSError *error) {
+                                  if (!image || error) {
+                                      NSLog(@"Error in %s", __FUNCTION__);
+                                  }
+                                  [self displayImage:image withTitle:title];
+                              }];
 }
 
 - (void)displayImage:(NSImage *)image withTitle:(NSString*)title {
@@ -275,19 +320,21 @@ BOOL hasPressedCommandF(NSEvent *event) {
     [self.previewPanel.animator setAlphaValue:1.f];
 }
 
-- (void)retrieveImageViewForScreenshot:(NSString *)screenshotPath progress:(void (^)(CGFloat))downloadProgress completion:(void (^)(NSImage *))completion {
+- (void)retrieveImageViewForScreenshot:(NSString *)screenshotPath
+                              progress:(ATZProgress)progressBlock
+                            completion:(ATZImageDownloadWithError)completionBlock {
     
     ATZDownloader *downloader = [ATZDownloader new];
-    [downloader downloadFileFromPath:screenshotPath
-                            progress:^(CGFloat progress) {
-                                downloadProgress(progress);
-                            }
-                          completion:^(NSData *responseData, NSError *error) {
-                              
-                              NSImage *image = [[NSImage alloc] initWithData:responseData];
-                              completion(image);
-                          }];
-    
+    [downloader downloadFileFromPath:screenshotPath progress:^(CGFloat progress) {
+        if (progressBlock) {
+            progressBlock(progress);
+        }
+    } completion:^(NSData *data, NSError *error) {
+        NSImage *image = [[NSImage alloc] initWithData:data];
+        if (completionBlock) {
+            completionBlock(image, error);
+        }
+    }];
 }
 
 - (void)addVersionToWindow {

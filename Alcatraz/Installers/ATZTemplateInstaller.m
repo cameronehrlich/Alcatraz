@@ -30,28 +30,33 @@
 
 #pragma mark - Abstract
 
-- (void)downloadPackage:(ATZPackage *)package completion:(void(^)(NSString *, NSError *))completion {
+- (void)downloadPackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
     [ATZGit cloneRepository:package.remotePath toLocalPath:[self pathForDownloadedPackage:package]
-                 completion:completion];
+                 completion:completionBlock];
 }
 
-- (void)updatePackage:(ATZPackage *)package completion:(void(^)(NSString *, NSError *))completion {
+- (void)updatePackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
     [ATZGit updateRepository:[self pathForDownloadedPackage:package] revision:package.revision
-                  completion:completion];
+                  completion:completionBlock];
 }
 
-- (void)installPackage:(ATZTemplate *)package completion:(void(^)(NSError *))completion {
-    [self copyTemplatesToXcode:package completion:completion];
+- (void)installPackage:(ATZTemplate *)package completion:(ATZSuccessWithError)completionBlock {
+    [self copyTemplatesToXcode:package completion:completionBlock];
 }
 
 
 #pragma mark - Private
 
-- (void)copyTemplatesToXcode:(ATZTemplate *)template completion:(void (^)(NSError *))completion {
+- (void)copyTemplatesToXcode:(ATZTemplate *)template completion:(ATZSuccessWithError)completionBlock {
+
     NSError *error = nil;
     [self createTemplateInstallDirectory:template error:&error];
     
-    if (error) completion(error);
+    if (error){
+        if (completionBlock) {
+            completionBlock(error == nil ,error);
+        }
+    }
     
     for (NSString *templatePath in [self templateFilesForClonedTemplate:template]) {
 
@@ -61,7 +66,10 @@
         [[NSFileManager sharedManager] copyItemAtPath:templatePath toPath:installPath error:&error];
     }
     
-    completion(error);
+    if (completionBlock) {
+        completionBlock(error == nil ,error);
+    }
+
 }
 
 - (BOOL)createTemplateInstallDirectory:(ATZTemplate *)template error:(NSError **)error {

@@ -21,6 +21,8 @@
 // THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
+#import "ATZCallbacks.h"
+
 
 static NSString *const GIT = @"/usr/bin/git";
 static NSString *const IGNORE_PUSH_CONFIG = @"-c push.default=matching";
@@ -37,10 +39,10 @@ static NSString *const HARD = @"--hard";
 @interface ATZGit : NSObject
 
 + (void)cloneRepository:(NSString *)remotePath toLocalPath:(NSString *)localPath
-             completion:(void(^)(NSString *output, NSError *error))completion;
+             completion:(ATZStringWithError)completionBlock;
 
 + (void)updateRepository:(NSString *)localPath revision:(NSString *)revision
-              completion:(void(^)(NSString *output, NSError *error))completion;
+              completion:(ATZStringWithError)completionBlock;
 
 + (NSString *)parseRevisionFromDictionary:(NSDictionary *)dict;
 

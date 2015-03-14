@@ -23,8 +23,8 @@
 #import "ATZFillableButton.h"
 #import "ATZStyleKit.h"
 
-NSString* const ATZFillableButtonTypeInstall = @"install";
-NSString* const ATZFillableButtonTypeNormal = @"normal";
+NSString *const ATZFillableButtonTypeInstall = @"install";
+NSString *const ATZFillableButtonTypeNormal = @"normal";
 
 @implementation ATZFillableButton
 
@@ -48,12 +48,12 @@ NSString* const ATZFillableButtonTypeNormal = @"normal";
     [self setNeedsDisplay];
 }
 
-- (void)setFillRatio:(float)fillRatio {
+- (void)setFillRatio:(CGFloat)fillRatio {
     _fillRatio = fillRatio;
     [self setNeedsDisplay];
 }
 
-- (void)setFillRatio:(float)fillRatio animated:(BOOL)animated {
+- (void)setFillRatio:(CGFloat)fillRatio animated:(BOOL)animated {
     if (animated) {
         self.animator.fillRatio = fillRatio;
     } else {

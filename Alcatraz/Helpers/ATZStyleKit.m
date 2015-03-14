@@ -26,58 +26,52 @@
 
 @implementation ATZStyleKit
 
-#pragma mark Initialization
-
-+ (void)initialize
-{
-}
-
 #pragma mark Drawing Methods
 
-+ (void)drawFillableButtonWithButtonText: (NSString*)buttonText fillRatio: (CGFloat)fillRatio buttonWidth: (CGFloat)buttonWidth buttonType: (NSString*)buttonType
-{
++ (void)drawFillableButtonWithButtonText:(NSString *)buttonText
+                               fillRatio:(CGFloat)fillRatio
+                             buttonWidth:(CGFloat)buttonWidth
+                              buttonType:(NSString *)buttonType {
     //// General Declarations
     CGContextRef context = (CGContextRef)NSGraphicsContext.currentContext.graphicsPort;
-
+    
     //// Color Declarations
-    NSColor* buttonColor = [NSColor colorWithCalibratedRed: 0.311 green: 0.699 blue: 0.37 alpha: 1];
-    NSColor* clear = [NSColor colorWithCalibratedRed: 1 green: 1 blue: 1 alpha: 0];
-    NSColor* white = [NSColor colorWithCalibratedRed: 1 green: 1 blue: 1 alpha: 1];
-    NSColor* gray = [NSColor colorWithCalibratedRed: 0.378 green: 0.378 blue: 0.378 alpha: 1];
-    NSColor* removeButtonColor = [NSColor colorWithCalibratedRed: 0.845 green: 0.236 blue: 0.362 alpha: 1];
-
+    NSColor *buttonColor = [NSColor colorWithCalibratedRed: 0.311 green: 0.699 blue: 0.37 alpha: 1];
+    NSColor *clear = [NSColor colorWithCalibratedRed: 1 green: 1 blue: 1 alpha: 0];
+    NSColor *white = [NSColor colorWithCalibratedRed: 1 green: 1 blue: 1 alpha: 1];
+    NSColor *gray = [NSColor colorWithCalibratedRed: 0.378 green: 0.378 blue: 0.378 alpha: 1];
+    NSColor *removeButtonColor = [NSColor colorWithCalibratedRed: 0.845 green: 0.236 blue: 0.362 alpha: 1];
+    
     //// Variable Declarations
     CGFloat computedFillWidth = fillRatio * buttonWidth * 0.01;
     CGFloat fillWidth = computedFillWidth < 0 ? 0 : (computedFillWidth > buttonWidth ? buttonWidth : computedFillWidth);
-    NSColor* buttonTextColor = fillRatio >= 40 ? white : ([buttonType isEqualToString: @"install"] ? buttonColor : gray);
-    NSColor* buttonStrokeColor = [buttonType isEqualToString: @"install"] ? (fillRatio >= 100 ? removeButtonColor : buttonColor) : gray;
-    NSColor* buttonFillColor = fillWidth <= 8 ? clear : (fillRatio >= 100 ? removeButtonColor : buttonStrokeColor);
-
+    NSColor *buttonTextColor = fillRatio >= 40 ? white : ([buttonType isEqualToString: @"install"] ? buttonColor : gray);
+    NSColor *buttonStrokeColor = [buttonType isEqualToString: @"install"] ? (fillRatio >= 100 ? removeButtonColor : buttonColor) : gray;
+    NSColor *buttonFillColor = fillWidth <= 8 ? clear : (fillRatio >= 100 ? removeButtonColor : buttonStrokeColor);
+    
     //// borderRect Drawing
-    NSBezierPath* borderRectPath = [NSBezierPath bezierPathWithRoundedRect: NSMakeRect(1, 1, (buttonWidth - 3), 25) xRadius: 2 yRadius: 2];
+    NSBezierPath *borderRectPath = [NSBezierPath bezierPathWithRoundedRect:NSMakeRect(1, 1, (buttonWidth - 3), 25) xRadius: 2 yRadius: 2];
     [buttonStrokeColor setStroke];
     [borderRectPath setLineWidth: 1];
     [borderRectPath stroke];
-
-
+    
     //// fillRect Drawing
     [NSGraphicsContext saveGraphicsState];
     CGContextTranslateCTM(context, 1, 2);
-
+    
     NSBezierPath* fillRectPath = [NSBezierPath bezierPathWithRoundedRect: NSMakeRect(0, -1.5, (fillWidth - 3), 25) xRadius: 2 yRadius: 2];
     [buttonFillColor setFill];
     [fillRectPath fill];
-
+    
     [NSGraphicsContext restoreGraphicsState];
-
-
+    
     //// Text Drawing
     NSRect textRect = NSMakeRect(1, -2, buttonWidth, 20);
     NSMutableParagraphStyle* textStyle = NSMutableParagraphStyle.defaultParagraphStyle.mutableCopy;
     textStyle.alignment = NSCenterTextAlignment;
-
+    
     NSDictionary* textFontAttributes = @{NSFontAttributeName: [NSFont fontWithName: @"HelveticaNeue-Light" size: 12], NSForegroundColorAttributeName: buttonTextColor, NSParagraphStyleAttributeName: textStyle};
-
+    
     [buttonText drawInRect: NSOffsetRect(textRect, 0, 4) withAttributes: textFontAttributes];
 }
 

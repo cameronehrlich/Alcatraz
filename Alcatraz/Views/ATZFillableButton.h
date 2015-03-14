@@ -21,13 +21,13 @@
 
 #import <Cocoa/Cocoa.h>
 
-extern NSString* const ATZFillableButtonTypeInstall;
-extern NSString* const ATZFillableButtonTypeNormal;
+extern NSString *const ATZFillableButtonTypeInstall;
+extern NSString *const ATZFillableButtonTypeNormal;
 
 @interface ATZFillableButton : NSButton
 
 @property (nonatomic, strong) NSString* buttonBorderStyle;
-@property (nonatomic) float fillRatio;
+@property (nonatomic) CGFloat fillRatio;
 
-- (void)setFillRatio:(float)fillRatio animated:(BOOL)animated;
+- (void)setFillRatio:(CGFloat)fillRatio animated:(BOOL)animated;
 @end

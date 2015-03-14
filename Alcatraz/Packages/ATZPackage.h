@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
+#import "ATZCallbacks.h"
 
 @class ATZInstaller;
 
@@ -46,15 +47,15 @@ typedef NS_ENUM(NSUInteger, ATZPackageWebsiteType) {
 @property (nonatomic, assign)   BOOL requiresRestart;
 @property (nonatomic, readonly) ATZPackageWebsiteType websiteType;
 
-- (id)initWithDictionary:(NSDictionary *)dict;
+- (instancetype)initWithDictionary:(NSDictionary *)dict;
 
-- (void)installWithProgress:(void(^)(NSString *proggressMessage, CGFloat progress))progress
-                 completion:(void(^)(NSError *failure))completion;
+- (void)installWithProgress:(ATZProgressWithString)progressBlock
+                 completion:(ATZSuccessWithError)completionBlock;
 
-- (void)updateWithProgress:(void(^)(NSString *proggressMessage, CGFloat progress))progress
-                completion:(void(^)(NSError *failure))completion;
+- (void)updateWithProgress:(ATZProgressWithString)progressBlock
+                completion:(ATZSuccessWithError)completionBlock;
 
-- (void)removeWithCompletion:(void(^)(NSError *failure))completion;
+- (void)removeWithCompletion:(ATZSuccessWithError)completionBlock;
 
 
 #pragma mark - Abstract

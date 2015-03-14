@@ -44,41 +44,61 @@ const CGFloat ATZFakeInstallProgress = 0.66;
 
 #pragma mark - Public
 
-- (void)installPackage:(ATZPackage *)package progress:(void(^)(NSString *, CGFloat))progress
-            completion:(void(^)(NSError *error))completion {
-
-    progress([NSString stringWithFormat:DOWNLOADING_FORMAT, package.name], ATZFakeDownloadProgress);
-    [self downloadOrUpdatePackage:package completion:^(NSString *output, NSError *error) {
-       
-        if (error) { completion(error); return; }
-        progress([NSString stringWithFormat:INSTALLING_FORMAT, package.name], ATZFakeInstallProgress);
+- (void)installPackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock completion:(ATZSuccessWithError)completionBlock {
+    if (progressBlock) {
+        progressBlock(ATZFakeDownloadProgress, [NSString stringWithFormat:DOWNLOADING_FORMAT, package.name]);
+    }
+    
+    [self downloadPackage:package completion:^(NSString *output, NSError *error) {
+        if (error) {
+            if (completionBlock) {
+                completionBlock(NO ,error);
+            }
+            return;
+        }
+        if (progressBlock) {
+            progressBlock(ATZFakeInstallProgress, [NSString stringWithFormat:INSTALLING_FORMAT, package.name]);
+        }
         
-        [self installPackage:package completion:^(NSError *error) {
+        [self installPackage:package completion:^(BOOL success, NSError *error) {
             if (error) {
-                completion(error);
-            } else {
-                [self reloadXcodeForPackage:package completion:completion];
+                if (completionBlock) {
+                    completionBlock(NO, error);
+                }
+                else {
+                    [self reloadXcodeForPackage:package completion:completionBlock];
+                }
             }
         }];
     }];
 }
 
-- (void)updatePackage:(ATZPackage *)package progress:(void(^)(NSString *, CGFloat))progress
-           completion:(void(^)(NSError *error))completion {
+- (void)updatePackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock completion:(ATZSuccessWithError)completionBlock {
     
-    progress([NSString stringWithFormat:UPDATING_FORMAT, package.name], ATZFakeDownloadProgress);
+    if (progressBlock) {
+        progressBlock(ATZFakeDownloadProgress, [NSString stringWithFormat:UPDATING_FORMAT, package.name]);
+    }
+
     [self downloadOrUpdatePackage:package completion:^(NSString *output, NSError *error) {
         
         BOOL needsUpdate = output.length > 0;
-        if (error || !needsUpdate) { completion(error); return; }
+        if (error || !needsUpdate) {
+            if (completionBlock) {
+                completionBlock(NO, error);
+            }
+            return;
+        }
+        
+        if (progressBlock) {
+            progressBlock(ATZFakeInstallProgress, [NSString stringWithFormat:INSTALLING_FORMAT, package.name]);
+        }
 
-        progress([NSString stringWithFormat:INSTALLING_FORMAT, package.name], ATZFakeInstallProgress);
-        [self installPackage:package completion:completion];
+        [self installPackage:package completion:completionBlock];
     }];
 }
 
-- (void)removePackage:(ATZPackage *)package completion:(void (^)(NSError *))completion {
-    [[NSFileManager sharedManager] removeItemAtPath:[self pathForInstalledPackage:package] completion:completion];
+- (void)removePackage:(ATZPackage *)package completion:(ATZSuccessWithError)completionBlock {
+    [[NSFileManager sharedManager] removeItemAtPath:[self pathForInstalledPackage:package] completion:completionBlock];
 }
 
 - (BOOL)isPackageInstalled:(ATZPackage *)package {
@@ -98,17 +118,17 @@ const CGFloat ATZFakeInstallProgress = 0.66;
 }
 
 
-- (void)downloadPackage:(ATZPackage *)package completion:(void(^)(NSString *, NSError *))completion {
+- (void)downloadPackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
     @throw [NSException exceptionWithName:@"Abstract Installer"
                                    reason:@"Abstract Installer doesn't know how to download" userInfo:nil];
 }
 
-- (void)updatePackage:(ATZPackage *)package completion:(void(^)(NSString *, NSError *))completion {
+- (void)updatePackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
     @throw [NSException exceptionWithName:@"Abstract Installer"
                                    reason:@"Abstract Installer doesn't know how to update" userInfo:nil];
 }
 
-- (void)installPackage:(ATZPackage *)package completion:(void(^)(NSError *))completion {
+- (void)installPackage:(ATZPackage *)package completion:(ATZSuccessWithError)completionBlock {
     @throw [NSException exceptionWithName:@"Abstract Installer"
                                    reason:@"Abstract Installer doesn't know how to install" userInfo:nil];
 }
@@ -127,20 +147,29 @@ const CGFloat ATZFakeInstallProgress = 0.66;
 
 #pragma mark - Hooks
 
-- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(void(^)(NSError *))completion{ completion(nil); }
-
+- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(ATZSuccessWithError)completionBlock {
+    if (completionBlock) {
+        completionBlock(YES, nil);
+    }
+}
 
 
 #pragma mark - Private
 
-- (void)downloadOrUpdatePackage:(ATZPackage *)package completion:(void (^)(NSString *, NSError *))completion {
+- (void)downloadOrUpdatePackage:(ATZPackage *)package completion:(ATZStringWithError)completionBlock {
     
-    if ([[NSFileManager sharedManager] fileExistsAtPath:[self pathForDownloadedPackage:package]])
+    if ([[NSFileManager sharedManager] fileExistsAtPath:[self pathForDownloadedPackage:package]]) {
+        
         [self updatePackage:package completion:^(NSString *output, NSError *error) {
-            completion(output, error);
+            
+            if (completionBlock) {
+                completionBlock(output, error);
+            }
         }];
-    else
-        [self downloadPackage:package completion:completion];
+    }
+    else {
+        [self downloadPackage:package completion:completionBlock];
+    }
 }
 
 @end

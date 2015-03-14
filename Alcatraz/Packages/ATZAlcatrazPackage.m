@@ -38,9 +38,12 @@
         @"branch": @"deploy"
     }];
     
-    [alcatraz updateWithProgress:^(NSString *proggressMessage, CGFloat progress){} completion:^(NSError *failure) {
-        if (failure)
-            NSLog(@"Alcatraz update failed! %@", failure);
+    [alcatraz updateWithProgress:^(CGFloat progress, NSString *message) {
+        // Do nothing with progress
+    } completion:^(BOOL success, NSError *error) {
+        if (!success || error) {
+            NSLog(@"Alcatraz update failed! %@", error.debugDescription);
+        }
     }];
 }
 

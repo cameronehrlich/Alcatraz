@@ -22,6 +22,7 @@
 
 #import <AppKit/AppKit.h>
 #import "ATZPluginWindowController.h"
+#import "ATZCallbacks.h"
 
 @interface Alcatraz : NSObject
 

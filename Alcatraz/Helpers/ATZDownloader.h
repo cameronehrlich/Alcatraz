@@ -23,20 +23,20 @@
 
 #import <Foundation/Foundation.h>
 
-typedef void(^ATZJSONDownloadCompletion)(NSDictionary *json, NSError *error);
-typedef void(^ATZDataDownloadCompletion)(NSData *data, NSError *error);
-typedef void(^ATZDownloadProgress)(CGFloat progress);
-
 @interface ATZDownloader : NSObject<NSURLSessionDownloadDelegate, NSURLSessionTaskDelegate>
 
-+ (NSString*)packageRepoPath;
-+ (void)setPackagesRepoPath:(NSString*)path;
++ (NSString *)packageRepoPath;
++ (void)setPackagesRepoPath:(NSString *)path;
 + (void)resetPackageRepoPath;
 
-- (void)downloadPackageListWithCompletion:(ATZJSONDownloadCompletion)completion;
+- (void)downloadPackageListWithProgress:(ATZProgress)progressBlock
+                          andCompletion:(ATZJSONDownloadWithError)completionBlock;
+
 - (void)downloadFileFromPath:(NSString *)remotePath
-                    progress:(ATZDownloadProgress)progress
-                  completion:(ATZDataDownloadCompletion)completion;
+                    progress:(ATZProgress)progressBlock
+                  completion:(ATZDataDownloadWithError)completionBlock;
+
+
 
 
 @end

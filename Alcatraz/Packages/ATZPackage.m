@@ -28,12 +28,11 @@
 @implementation ATZPackage
 @dynamic isInstalled, type, website, extension, iconName;
 
-- (id)initWithDictionary:(NSDictionary *)dict {
-    self = [super init];
-    if (!self) return nil;
-
-    [self unpackFromDictionary:dict];
-
+- (instancetype)initWithDictionary:(NSDictionary *)dict {
+    
+    if (self = [super init]) {
+        [self unpackFromDictionary:dict];
+    }
     return self;
 }
 
@@ -48,8 +47,7 @@
     [self parseWebsiteTypeFromURLPath:dictionary[@"url"]];
 }
 
-- (void)parseWebsiteTypeFromURLPath:(NSString*)URLPath
-{
+- (void)parseWebsiteTypeFromURLPath:(NSString*)URLPath {
     if ([URLPath rangeOfString:@"github.com"].location != NSNotFound || [URLPath rangeOfString:@"githubusercontent.com"].location != NSNotFound) {
         _websiteType = ATZPackageWebsiteTypeGithub;
     } else if ([URLPath rangeOfString:@"bitbucket.com"].location != NSNotFound) {
@@ -85,15 +83,15 @@
     @throw [NSException exceptionWithName:@"Not Implemented" reason:@"Some packages don't require restarting!" userInfo:nil];
 }
 
-- (void)installWithProgress:(void (^)(NSString *, CGFloat))progress completion:(void (^)(NSError *))completion {
+- (void)installWithProgress:(ATZProgressWithString)progress completion:(ATZSuccessWithError)completion {
     [[self installer] installPackage:self progress:progress completion:completion];
 }
 
-- (void)updateWithProgress:(void (^)(NSString *, CGFloat))progress completion:(void (^)(NSError *))completion {
+- (void)updateWithProgress:(ATZProgressWithString)progress completion:(ATZSuccessWithError)completion {
     [[self installer] updatePackage:self progress:progress completion:completion];
 }
 
-- (void)removeWithCompletion:(void (^)(NSError *))completion {
+- (void)removeWithCompletion:(ATZSuccessWithError)completion {
     [[self installer] removePackage:self completion:completion];
 }
 

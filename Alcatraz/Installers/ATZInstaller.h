@@ -24,6 +24,7 @@
 #import <Foundation/Foundation.h>
 #import "ATZDownloader.h"
 #import "NSFileManager+Alcatraz.h"
+#import "ATZCallbacks.h"
 
 @class ATZPackage;
 
@@ -35,12 +36,14 @@ static NSString *const UPDATING_FORMAT = @"Updating %@...";
 
 + (instancetype)sharedInstaller;
 
-- (void)installPackage:(ATZPackage *)package progress:(void(^)(NSString *progressMessage, CGFloat progress))progress
-                                           completion:(void(^)(NSError *error))completion;
-- (void)updatePackage:(ATZPackage *)package progress:(void(^)(NSString *progressMessage, CGFloat progress))progress
-                                          completion:(void(^)(NSError *error))completion;
+- (void)installPackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock
+                                           completion:(ATZSuccessWithError)completionBlock;
+
+- (void)updatePackage:(ATZPackage *)package progress:(ATZProgressWithString)progressBlock
+                                          completion:(ATZSuccessWithError)completionBlock;
+
 - (void)removePackage:(ATZPackage *)package
-           completion:(void(^)(NSError *error))completion;
+           completion:(ATZSuccessWithError)completion;
 
 
 - (BOOL)isPackageInstalled:(ATZPackage *)package;
@@ -55,6 +58,6 @@ static NSString *const UPDATING_FORMAT = @"Updating %@...";
 
 #pragma mark - Hooks
 
-- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(void(^)(NSError *error))completion;
+- (void)reloadXcodeForPackage:(ATZPackage *)package completion:(ATZSuccessWithError)completion;
 
 @end

@@ -81,6 +81,7 @@
 		079C9E02183D8BB8009F5A17 /* link_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = link_icon.png; sourceTree = "<group>"; };
 		079C9E04183D8BBD009F5A17 /* link_icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "link_icon@2x.png"; sourceTree = "<group>"; };
 		0C7AF64F186B4E890064EE7B /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		328F3B501AB43212002DAE5E /* ATZCallbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ATZCallbacks.h; path = Helpers/ATZCallbacks.h; sourceTree = "<group>"; };
 		32BDEBC2173A46A900513A7C /* eye_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = eye_icon.png; sourceTree = "<group>"; };
 		32D86503173A4555009C724B /* eye_icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "eye_icon@2x.png"; sourceTree = "<group>"; };
 		6449530218CE826C009494BD /* ATZVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ATZVersion.h; sourceTree = "<group>"; };
@@ -268,10 +269,11 @@
 				8917D9E61726B4EE00F0B2D2 /* Packages */,
 				892C7DD7171F2A2000A21B12 /* Controllers */,
 				8A0C0A4A1726C04A006E7AD2 /* Views */,
+				328F3B501AB43212002DAE5E /* ATZCallbacks.h */,
+				6449530218CE826C009494BD /* ATZVersion.h */,
 				890A4B4C171F031300AFE577 /* Alcatraz.h */,
 				890A4B4D171F031300AFE577 /* Alcatraz.m */,
 				890A4B47171F031300AFE577 /* Supporting Files */,
-				6449530218CE826C009494BD /* ATZVersion.h */,
 			);
 			path = Alcatraz;
 			sourceTree = "<group>";

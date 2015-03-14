@@ -38,12 +38,14 @@ static NSFileManager *singleton;
     return singleton;
 }
 
-- (void)removeItemAtPath:(NSString *)path completion:(void (^)(NSError *))completion {
+- (void)removeItemAtPath:(NSString *)path completion:(ATZSuccessWithError)completionBlock {
     NSError *error = nil;
     
     [self removeItemAtPath:path error:&error];
-    if (completion)
-        completion(error);
+    
+    if (completionBlock) {
+        completionBlock( error != nil ,error);
+    }
 }
 
 @end

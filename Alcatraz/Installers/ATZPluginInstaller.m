@@ -72,28 +72,35 @@ static NSString *const PROJECT_PBXPROJ = @"project.pbxproj";
 
 #pragma mark - Hooks
 // Note: this is an early alpha implementation. It needs some love
-- (void)reloadXcodeForPackage:(ATZPackage *)plugin completion:(void(^)(NSError *))completion {
+- (void)reloadXcodeForPackage:(ATZPackage *)plugin completion:(ATZSuccessWithError)completionBlock {
 
     NSBundle *pluginBundle = [NSBundle bundleWithPath:[self pathForInstalledPackage:plugin]];
     NSLog(@"Trying to reload plugin: %@ with bundle: %@", plugin.name, pluginBundle);
 
     if (!pluginBundle) {
-        completion([NSError errorWithDomain:@"Bundle was not found" code:669 userInfo:nil]);
+        if (completionBlock) {
+            completionBlock(NO ,[NSError errorWithDomain:@"Bundle was not found" code:669 userInfo:nil]);
+        }
         return;
     }
     else if ([pluginBundle isLoaded]) {
-        completion(nil);
+        if (completionBlock) {
+            completionBlock(YES, nil);
+        }
         return;
     }
 
     NSError *loadError = nil;
     BOOL loaded = [pluginBundle loadAndReturnError:&loadError];
-    if (!loaded)
+    if (!loaded) {
         NSLog(@"[Alcatraz] Plugin load error: %@", loadError);
+    }
 
     [self reloadPluginBundleWithoutWarnings:pluginBundle forPlugin:plugin];
 
-    completion(nil);
+    if (completionBlock) {
+        completionBlock(YES, nil);
+    }
 }
 
 #pragma mark - Private

@@ -36,39 +36,49 @@ static NSString *const ATZ_REPO_KEY = @"ATZRepoPath";
 static NSString *const PROGRESS = @"progress";
 static NSString *const COMPLETION = @"completion";
 
-- (id)init {
-    self = [super init];
-    if (!self) return nil;
-    
-    _callbacks = [NSMutableDictionary new];
-    
+- (instancetype)init {
+    if (self = [super init]) {
+        _callbacks = [NSMutableDictionary new];
+    }
     return self;
 }
 
-- (void)downloadPackageListWithCompletion:(ATZJSONDownloadCompletion)completion {
+- (void)downloadPackageListWithProgress:(ATZProgress)progressBlock andCompletion:(ATZJSONDownloadWithError)completionBlock  {
     [self downloadFileFromPath:[ATZDownloader packageRepoPath]
-                      progress:^(CGFloat progress) {}
+                      progress:^(CGFloat progress) {
+                          if (progressBlock) {
+                              progressBlock(progress);
+                          }
+                      }
                     completion:^(NSData *data, NSError *error) {
                         
-        if (error) { completion(nil, error); return; }
-
-        NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-        completion(JSON[@"packages"], error);
-    }];
+                        if (error) {
+                            if (completionBlock) {
+                                completionBlock(nil, error);
+                            }
+                            return;
+                        }
+                        
+                        NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+                        if (completionBlock) {
+                            completionBlock(JSON[@"packages"], error);
+                        }
+                    }];
 }
 
-- (void)downloadFileFromPath:(NSString *)remotePath progress:(ATZDownloadProgress)progress
-                                                  completion:(ATZDataDownloadCompletion)completion {
-
+- (void)downloadFileFromPath:(NSString *)remotePath progress:(ATZProgress)progressBlock completion:(ATZDataDownloadWithError)completionBlock {
+    
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:remotePath]];
     NSURLSessionTask *task = [[self urlSession] downloadTaskWithRequest:request];
-
-    NSMutableDictionary* callbacks = [[NSMutableDictionary alloc] initWithCapacity:2];
-    if (completion)
-        callbacks[COMPLETION] = completion;
-    if (progress)
-        callbacks[PROGRESS] = progress;
-
+    
+    NSMutableDictionary *callbacks = [[NSMutableDictionary alloc] initWithCapacity:2];
+    if (completionBlock) {
+        callbacks[COMPLETION] = completionBlock;
+    }
+    if (progressBlock) {
+        callbacks[PROGRESS] = progressBlock;
+    }
+    
     self.callbacks[task] = callbacks;
     
     [task resume];
@@ -76,11 +86,11 @@ static NSString *const COMPLETION = @"completion";
 
 #pragma mark - Package Repo
 
-+ (NSString*)packageRepoPath {
-    NSString* path = [[NSUserDefaults standardUserDefaults] valueForKey:ATZ_REPO_KEY];
-    if (!path)
++ (NSString *)packageRepoPath {
+    NSString *path = [[NSUserDefaults standardUserDefaults] valueForKey:ATZ_REPO_KEY];
+    if (!path) {
         path = ATZ_DEFAULT_REPO_PATH;
-
+    }
     return path;
 }
 
@@ -97,9 +107,10 @@ static NSString *const COMPLETION = @"completion";
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
                               didFinishDownloadingToURL:(NSURL *)location {
 
-    ATZDataDownloadCompletion completionBlock = self.callbacks[downloadTask][COMPLETION];
-    if (completionBlock)
+    ATZDataDownloadWithError completionBlock = self.callbacks[downloadTask][COMPLETION];
+    if (completionBlock) {
         completionBlock([NSData dataWithContentsOfURL:location], nil);
+    }
 }
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
@@ -109,15 +120,19 @@ static NSString *const COMPLETION = @"completion";
 
     CGFloat progress = (CGFloat)totalBytesWritten / (CGFloat)totalBytesExpectedToWrite;
 
-    ATZDownloadProgress progressBlock =  self.callbacks[downloadTask][PROGRESS];
-    if (progressBlock)
+    ATZProgress progressBlock = self.callbacks[downloadTask][PROGRESS];
+    if (progressBlock) {
         progressBlock(progress);
+    }
 }
 
-- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes {}
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes {
+}
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task willPerformHTTPRedirection:(NSHTTPURLResponse *)response newRequest:(NSURLRequest *)request completionHandler:(void (^)(NSURLRequest *))completionHandler {
-    completionHandler(request);
+    if (completionHandler) {
+        completionHandler(request);
+    }
 }
 
 
@@ -126,25 +141,18 @@ static NSString *const COMPLETION = @"completion";
 /* Sent as the last message related to a specific task.  Error may be
  * nil, which implies that no error occurred and this task is complete.
  */
-- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
-didCompleteWithError:(NSError *)error {
-    
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
 }
-
 
 #pragma mark - Private
 
 - (NSURLSession *)urlSession {
-    if (_urlSession) return _urlSession;
-    
-    _urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]
-                                                delegate:self
-                                           delegateQueue:[NSOperationQueue mainQueue]];
+    if (!_urlSession) {
+        _urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]
+                                                    delegate:self
+                                               delegateQueue:[NSOperationQueue mainQueue]];
+    }
     return _urlSession;
 }
-
-
-
-
 
 @end

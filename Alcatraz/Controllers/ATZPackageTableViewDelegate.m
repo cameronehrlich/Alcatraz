@@ -191,7 +191,7 @@ static CGFloat const ATZPackageCellBaseHeight = 116.f;
 #pragma mark - Image Previews
 
 + (NSCache *)imageCache {
-    static NSCache* cache = nil;
+    static NSCache *cache = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         cache = [[NSCache alloc] init];
@@ -212,16 +212,19 @@ static CGFloat const ATZPackageCellBaseHeight = 116.f;
     [downloader downloadFileFromPath:package.screenshotPath
                             progress:progress
                           completion:^(NSData *responseData, NSError *error) {
-                              if (error)
+                              if (error) {
                                   return;
+                              }
 
                               NSImage *image = [[NSImage alloc] initWithData:responseData];
-                              if (!image)
+                              if (!image) {
                                   return;
+                              }
                               
                               [self cacheImage:image forPackage:package];
-                              if (completion)
+                              if (completion) {
                                   completion(image);
+                              }
                           }];
 }
 

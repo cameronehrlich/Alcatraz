@@ -34,7 +34,7 @@
 @property (weak) IBOutlet NSSegmentedControl *installationStateSegmentedControl;
 @property (weak) IBOutlet NSTextField *versionTextField;
 
-- (id)initWithBundle:(NSBundle *)bundle;
+- (instancetype)initWithBundle:(NSBundle *)bundle;
 
 - (IBAction)openPackageWebsitePressed:(NSButton *)sender;
 - (IBAction)displayScreenshotPressed:(NSButton *)sender;
